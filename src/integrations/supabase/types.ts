@@ -1,3 +1,15 @@
+export type Order = {
+  id: string;
+  client_name: string;
+  item_name: string;
+  price: number;
+  cost?: number | null;
+  address: string;
+  status: 'pending' | 'available' | 'completed';
+  paid: boolean;
+  created_at: string;
+  completed_at?: string | null;
+};
 export type Json =
   | string
   | number

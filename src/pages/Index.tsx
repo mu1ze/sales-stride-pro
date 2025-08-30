@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { getOrders, createOrder, updateOrder } from "@/integrations/supabase/client";
 import { Order, DashboardMetrics } from "@/types";
 import { Dashboard } from "@/components/Dashboard";
 import { OrderForm } from "@/components/OrderForm";
@@ -7,59 +8,77 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Plus, Package } from "lucide-react";
 
 const Index = () => {
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: '1',
-      clientName: 'Sarah Johnson',
-      itemName: 'Custom Wedding Cake',
-      price: 450,
-      cost: 180,
-      address: '123 Main St, Springfield, IL',
-      status: 'pending',
-      createdAt: new Date('2024-01-15')
-    },
-    {
-      id: '2',
-      clientName: 'Mike Chen',
-      itemName: 'Birthday Cake Set',
-      price: 120,
-      cost: 45,
-      address: '456 Oak Ave, Springfield, IL',
-      status: 'available',
-      createdAt: new Date('2024-01-16')
-    },
-    {
-      id: '3',
-      clientName: 'Emily Davis',
-      itemName: 'Cupcake Dozen',
-      price: 85,
-      cost: 25,
-      address: '789 Pine Rd, Springfield, IL',
-      status: 'completed',
-      createdAt: new Date('2024-01-10'),
-      completedAt: new Date('2024-01-12')
-    }
-  ]);
+  const [orders, setOrders] = useState<Order[]>([]);
 
-  const addOrder = (orderData: Omit<Order, 'id' | 'createdAt'>) => {
-    const newOrder: Order = {
-      ...orderData,
-      id: Date.now().toString(),
-      createdAt: new Date()
-    };
-    setOrders(prev => [newOrder, ...prev]);
+  useEffect(() => {
+    async function fetchOrders() {
+      try {
+        const data = await getOrders();
+        setOrders(
+          data.map(order => ({
+            ...order,
+            createdAt: order.created_at ? new Date(order.created_at) : undefined,
+            completedAt: order.completed_at ? new Date(order.completed_at) : undefined,
+            clientName: order.client_name,
+            itemName: order.item_name
+          }))
+        );
+      } catch (err) {
+        console.error("Failed to fetch orders from Supabase", err);
+      }
+    }
+    fetchOrders();
+  }, []);
+
+  const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'completedAt'>) => {
+    try {
+      // Map camelCase to snake_case for Supabase
+      const supabaseOrder = {
+        ...orderData,
+        client_name: orderData.clientName,
+        item_name: orderData.itemName,
+        created_at: new Date().toISOString(),
+        paid: false, // or set based on your logic/UI
+      };
+      const newOrder = await createOrder(supabaseOrder);
+      setOrders(prev => [
+        {
+          ...newOrder,
+          createdAt: newOrder.created_at ? new Date(newOrder.created_at) : undefined,
+          completedAt: newOrder.completed_at ? new Date(newOrder.completed_at) : undefined,
+          clientName: newOrder.client_name,
+          itemName: newOrder.item_name
+        },
+        ...prev
+      ]);
+    } catch (err) {
+      console.error("Failed to add order to Supabase", err);
+    }
   };
 
-  const updateOrderStatus = (orderId: string, status: Order['status']) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId 
-        ? { 
-            ...order, 
-            status,
-            completedAt: status === 'completed' ? new Date() : order.completedAt
-          }
-        : order
-    ));
+  const updateOrderStatus = async (orderId: string, status: Order['status']) => {
+    try {
+      const updates: Partial<Order> = { status };
+      if (status === 'completed') {
+        updates.completedAt = new Date();
+      } else {
+        updates.completedAt = null;
+      }
+      const updatedOrder = await updateOrder(orderId, updates);
+      setOrders(prev => prev.map(order => 
+        order.id === orderId 
+          ? {
+              ...updatedOrder,
+              createdAt: updatedOrder.created_at ? new Date(updatedOrder.created_at) : undefined,
+              completedAt: updatedOrder.completed_at ? new Date(updatedOrder.completed_at) : undefined,
+              clientName: updatedOrder.client_name,
+              itemName: updatedOrder.item_name
+            }
+          : order
+      ));
+    } catch (err) {
+      console.error("Failed to update order in Supabase", err);
+    }
   };
 
   const metrics: DashboardMetrics = useMemo(() => {

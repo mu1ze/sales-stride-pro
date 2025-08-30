@@ -7,11 +7,37 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
+import { Order } from './types';
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-  }
-});
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Fetch all orders
+export async function getOrders(): Promise<Order[]> {
+  const { data, error } = await supabase.from('orders').select('*');
+  if (error) throw error;
+  return data as Order[];
+}
+
+// Create a new order
+export async function createOrder(order: Omit<Order, 'id' | 'created_at' | 'completed_at'>): Promise<Order> {
+  const { data, error } = await supabase.from('orders').insert([order]).select('*').single();
+  if (error) throw error;
+  return data as Order;
+}
+
+// Update an order
+export async function updateOrder(id: string, updates: Partial<Order>): Promise<Order> {
+  const { data, error } = await supabase.from('orders').update(updates).eq('id', id).select('*').single();
+  if (error) throw error;
+  return data as Order;
+}
+
+// Delete an order
+export async function deleteOrder(id: string): Promise<void> {
+  const { error } = await supabase.from('orders').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ...existing code...
