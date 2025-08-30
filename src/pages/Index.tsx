@@ -113,7 +113,7 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Sales Stride Pro
+            Quad Tracker
           </h1>
           <p className="text-muted-foreground mt-2">
             Professional client tracking and order management
