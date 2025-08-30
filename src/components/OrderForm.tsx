@@ -1,4 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from '@/integrations/supabase/client';
+type Item = {
+  id: string;
+  name: string;
+  selling_price: number;
+  cost_price: number;
+};
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +26,14 @@ export const OrderForm = ({ onAddOrder }: OrderFormProps) => {
     cost: '',
     address: ''
   });
+  const [items, setItems] = useState<Item[]>([]);
+  useEffect(() => {
+    async function fetchItems() {
+      const { data, error } = await supabase.from('items').select('*');
+      if (!error && data) setItems(data);
+    }
+    fetchItems();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +61,18 @@ export const OrderForm = ({ onAddOrder }: OrderFormProps) => {
   };
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    // If itemName changes, auto-fill price and cost
+    if (field === 'itemName') {
+      const selected = items.find(item => item.name === value);
+      setFormData(prev => ({
+        ...prev,
+        itemName: value,
+        price: selected ? selected.selling_price.toString() : '',
+        cost: selected ? selected.cost_price.toString() : ''
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   return (
@@ -73,13 +99,18 @@ export const OrderForm = ({ onAddOrder }: OrderFormProps) => {
           
           <div className="space-y-2">
             <Label htmlFor="itemName">Item Name *</Label>
-            <Input
+            <select
               id="itemName"
-              placeholder="Enter item name"
               value={formData.itemName}
-              onChange={(e) => handleChange('itemName', e.target.value)}
+              onChange={e => handleChange('itemName', e.target.value)}
               required
-            />
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="">Select item</option>
+              {items.map(item => (
+                <option key={item.id} value={item.name}>{item.name}</option>
+              ))}
+            </select>
           </div>
         </div>
 

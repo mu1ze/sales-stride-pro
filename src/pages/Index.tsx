@@ -30,15 +30,21 @@ const Index = () => {
     fetchOrders();
   }, []);
 
-  const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'completedAt'>) => {
+  type AddOrderData = Omit<Order, 'id' | 'createdAt' | 'completedAt'> & { paid?: boolean };
+
+  const addOrder = async (orderData: AddOrderData) => {
     try {
       // Map camelCase to snake_case for Supabase
       const supabaseOrder = {
-        ...orderData,
         client_name: orderData.clientName,
         item_name: orderData.itemName,
+        price: orderData.price,
+        cost: orderData.cost ?? null,
+        address: orderData.address,
+        status: orderData.status,
+        paid: orderData.paid ?? false,
         created_at: new Date().toISOString(),
-        paid: false, // or set based on your logic/UI
+        completed_at: null,
       };
       const newOrder = await createOrder(supabaseOrder);
       setOrders(prev => [
@@ -58,11 +64,12 @@ const Index = () => {
 
   const updateOrderStatus = async (orderId: string, status: Order['status']) => {
     try {
-      const updates: Partial<Order> = { status };
+      // Map updates to snake_case
+      const updates: any = { status };
       if (status === 'completed') {
-        updates.completedAt = new Date();
+        updates.completed_at = new Date().toISOString();
       } else {
-        updates.completedAt = null;
+        updates.completed_at = null;
       }
       const updatedOrder = await updateOrder(orderId, updates);
       setOrders(prev => prev.map(order => 
