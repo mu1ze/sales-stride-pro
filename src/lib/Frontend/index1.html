@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Time Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <header class="gradient-bg text-white rounded-xl shadow-lg mb-8 overflow-hidden">
+            <div class="px-6 py-8 md:px-10 md:py-12">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold mb-2">Client Time Tracker</h1>
+                        <p class="opacity-90">Track your time spent on each client efficiently</p>
+                    </div>
+                    <div class="hidden md:block">
+                        <i class="fas fa-clock text-5xl opacity-20"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Client List & Timer Section -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Add Client Form -->
+                <div class="bg-white rounded-xl shadow-md p-6 slide-in">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-user-plus mr-2 text-blue-500"></i> Add New Client
+                    </h2>
+                    <form id="addClientForm" class="flex gap-3">
+                        <input type="text" id="clientName" placeholder="Client name" 
+                               class="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                        <input type="number" id="clientRate" placeholder="Hourly Rate ($)" 
+                                class="w-32 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+                            <i class="fas fa-plus mr-2"></i> Add
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Active Timer -->
+                <div id="activeTimerContainer" class="hidden bg-white rounded-xl shadow-md p-6 slide-in">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-clock mr-2 text-green-500"></i> Currently Tracking
+                    </h2>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 id="activeClientName" class="font-medium text-lg"></h3>
+                            <p id="activeTimer" class="text-3xl font-bold text-gray-800">00:00:00</p>
+                        </div>
+                        <button id="stopTimerBtn" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-medium transition flex items-center">
+                            <i class="fas fa-stop mr-2"></i> Stop
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Client List -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden slide-in">
+                    <div class="p-6 border-b">
+                        <h2 class="text-xl font-semibold flex items-center">
+                            <i class="fas fa-users mr-2 text-purple-500"></i> Your Clients
+                        </h2>
+                    </div>
+                    <div id="clientList" class="divide-y">
+                        <!-- Client items will be added here dynamically -->
+                        <div class="p-4 text-center text-gray-500">
+                            <p>No clients added yet. Add your first client above.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats & Reports Section -->
+            <div class="space-y-6">
+                <!-- Today's Summary -->
+                <div class="bg-white rounded-xl shadow-md p-6 slide-in">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-chart-pie mr-2 text-yellow-500"></i> Today's Summary
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-gray-500">Total Tracked Time</p>
+                            <p id="todayTotal" class="text-2xl font-bold">00:00:00</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Active Clients</p>
+                            <p id="todayClients" class="text-2xl font-bold">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Time Distribution -->
+                <div class="bg-white rounded-xl shadow-md p-6 slide-in">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-chart-pie mr-2 text-purple-500"></i> Time Distribution
+                    </h2>
+                    <canvas id="timeDistributionChart" height="200"></canvas>
+                </div>
+
+                <!-- Weekly Report -->
+                <div class="bg-white rounded-xl shadow-md p-6 slide-in">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-chart-bar mr-2 text-green-500"></i> Weekly Report
+                    </h2>
+                    <canvas id="weeklyChart" height="200"></canvas>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-md p-6 slide-in">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-bolt mr-2 text-red-500"></i> Quick Actions
+                    </h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="exportBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg font-medium transition flex items-center justify-center">
+                            <i class="fas fa-file-export mr-2"></i> Export
+                        </button>
+                        <button id="clearAllBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-lg font-medium transition flex items-center justify-center">
+                            <i class="fas fa-trash mr-2"></i> Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Detail Modal -->
+    <div id="clientModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 id="modalClientName" class="text-xl font-semibold"></h3>
+                <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="mb-6">
+                    <h4 class="font-medium mb-2">Total Time Tracked</h4>
+                    <p id="modalTotalTime" class="text-3xl font-bold text-blue-600">00:00:00</p>
+                </div>
+                <div class="mb-6">
+                    <h4 class="font-medium mb-2">Sessions</h4>
+                    <div id="modalSessions" class="space-y-2">
+                        <!-- Sessions will be added here -->
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <h4 class="font-medium mb-2">Hourly Rate</h4>
+                    <p id="modalRate" class="text-lg text-gray-700">$0.00/hr</p>
+                </div>
+                <div class="mb-6">
+                    <h4 class="font-medium mb-2">Total Bill</h4>
+                    <p id="modalTotalBill" class="text-xl font-bold text-green-600">$0.00</p>
+                </div>
+                <div>
+                    <h4 class="font-medium mb-2">Notes</h4>
+                    <textarea id="modalNotes" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" rows="3" placeholder="Add notes about this client..."></textarea>
+                    <button id="saveNotesBtn" class="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition">
+                        Save Notes
+                    </button>
+                </div>
+            </div>
+            <div class="p-4 border-t flex justify-end">
+                <button id="deleteClientBtn" class="text-red-500 hover:text-red-700 font-medium flex items-center">
+                    <i class="fas fa-trash mr-2"></i> Delete Client
+                </button>
+                <button id="printInvoiceBtn" class="mr-4 bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded-lg font-medium transition">
+                    <i class="fas fa-print mr-2"></i> Print Invoice
+                </button>
+                <button id="sendInvoiceBtn" class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg font-medium transition flex items-center">
+                    <i class="fas fa-envelope mr-2"></i> Send Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

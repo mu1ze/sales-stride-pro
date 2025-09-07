@@ -7,7 +7,12 @@ import { OrdersList } from "@/components/OrdersList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Plus, Package } from "lucide-react";
 
+const PAGE_PASSWORD = import.meta.env.VITE_PAGE_PASSWORD;
+
 const Index = () => {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
@@ -133,6 +138,45 @@ const Index = () => {
       profitMargin
     };
   }, [orders]);
+  
+  // Password check
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <form
+          className="bg-white p-8 rounded shadow-md flex flex-col gap-4 w-full max-w-xs"
+          onSubmit={e => {
+            e.preventDefault();
+            if (passwordInput === PAGE_PASSWORD) {
+              setAuthenticated(true);
+              setPasswordError("");
+            } else {
+              setPasswordError("Incorrect password. Please try again.");
+            }
+          }}
+        >
+          <h2 className="text-2xl font-bold mb-2">Enter Password</h2>
+          <input
+            type="password"
+            className="border rounded px-3 py-2"
+            placeholder="Password"
+            value={passwordInput}
+            onChange={e => setPasswordInput(e.target.value)}
+            autoFocus
+          />
+          {passwordError && (
+            <div className="text-red-500 text-sm">{passwordError}</div>
+          )}
+          <button
+            type="submit"
+            className="bg-primary text-white rounded px-4 py-2 font-semibold"
+          >
+            Unlock
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

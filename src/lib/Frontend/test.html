@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Time Tracker</title>
+    <link rel="stylesheet" href="test.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://kit.fontawesome.com/1dc402bbcd.js" crossorigin="anonymous"></script>
+    <script src="test.js" defer></script>
+</head>
+<body class="page">
+    <div class="main-container">
+        <div class="header">
+            <div class="header-inner">
+                <div class="header-content">
+                    <div class="title-block">
+                        <h1 class="main-title">Client Time Tracker</h1>
+                        <p class="subtitle">Track your time spent on each client efficiently</p>
+                    </div>
+                    <div class="icon-block">
+                        <i class="fas fa-clock icon-large"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="left-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-user-plus icon-blue"></i> Add New Client</h2>
+                    </div>
+                    <form id="addClientForm" class="form-row">
+                        <input type="text" id="clientName" placeholder="Client Name" class="input-text" required>
+                        <input type="number" id="clientRate" placeholder="Rate ($/hr)" step="0.01" min="0" class="input-rate">
+                        <button type="submit" class="btn btn-blue"><i class="fas fa-plus"></i> Add</button>
+                    </form>
+                </div>
+
+                <div class="card" id="activeTimerContainer">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-stopwatch icon-green"></i> Currently Tracking</h2>
+                    </div>
+                    <div class="active-timer">
+                        <span class="client-name" id="activeClientName"></span>
+                        <span class="timer-display" id="activeTimer">00:00:00</span>
+                        <button id="stopTimerBtn" class="btn btn-red"><i class="fas fa-stop"></i> Stop</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-users icon-purple"></i> Your Clients</h2>
+                    </div>
+                    <div class="client-list" id="clientList">
+                        <div class="empty-state">
+                            <p>No clients added yet. Add your first client above.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-chart-bar icon-yellow"></i> Today's Summary</h2>
+                    </div>
+                    <div class="summary-item">
+                        <p>Total Tracked Time</p>
+                        <p class="summary-value" id="todayTotal">00:00:00</p>
+                    </div>
+                    <div class="summary-item">
+                        <p>Active Clients</p>
+                        <p class="summary-value" id="todayClients">0</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-chart-pie icon-blue"></i> Time Distribution</h2>
+                    </div>
+                    <canvas id="timeDistributionChart"></canvas>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-calendar-week icon-green"></i> Weekly Report</h2>
+                    </div>
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-bolt icon-yellow"></i> Quick Actions</h2>
+                    </div>
+                    <div class="form-row">
+                        <button id="exportBtn" class="btn btn-light"><i class="fas fa-file-export"></i> Export</button>
+                        <button id="clearAllBtn" class="btn btn-danger"><i class="fas fa-trash"></i> Clear All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal hidden" id="clientModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modalClientName"></h2>
+                    <button id="closeModalBtn" class="btn btn-light"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-section">
+                        <h4>Total Time Tracked</h4>
+                        <p class="modal-highlight" id="modalTotalTime">00:00:00</p>
+                    </div>
+                    <div class="modal-section">
+                        <h4>Sessions</h4>
+                        <div id="modalSessions"></div>
+                    </div>
+                    <div class="modal-section">
+                        <h4>Hourly Rate</h4>
+                        <p class="modal-rate" id="modalRate">$0.00/hr</p>
+                    </div>
+                    <div class="modal-section">
+                        <h4>Total Bill</h4>
+                        <p class="modal-bill" id="modalTotalBill">$0.00</p>
+                    </div>
+                    <div class="modal-section">
+                        <h4>Notes</h4>
+                        <textarea id="modalNotes" rows="4"></textarea>
+                        <button id="saveNotesBtn" class="btn btn-success"><i class="fas fa-save"></i> Save Notes</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="deleteClientBtn" class="btn btn-danger"><i class="fas fa-trash"></i> Delete Client</button>
+                    <div>
+                        <button id="printInvoiceBtn" class="btn btn-blue"><i class="fas fa-print"></i> Print Invoice</button>
+                        <button id="sendInvoiceBtn" class="btn btn-blue"><i class="fas fa-envelope"></i> Send Invoice</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
